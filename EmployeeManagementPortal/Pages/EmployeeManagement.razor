@@ -11,7 +11,7 @@
 
 {
 
-<p><em>Loading...</em></p>
+    <p><em>Loading...</em></p>
 
 }
 
@@ -19,31 +19,41 @@ else
 
 {
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Position</th>
-            <th>Department</th>
-            <th>Salary</th>
-        </tr>
-    </thead>
-    <tbody>
-
-        @foreach (var employee in Employees)
-        {
+    <table class="table">
+        <thead>
             <tr>
-                <td>@employee.Id</td>
-                <td>@employee.Position</td>
-                <td>@employee.Department</td>
-                <td>@employee.Salary</td>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Department</th>
+                <th>Salary</th>
             </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var employee in Employees)
+            {
+                <tr>
+                    <td>@employee.Id</td>
+                    <td>@employee.Name</td>
+                    <td>@employee.Position</td>
+                    <td>@employee.Department</td>
+                    <td>@employee.Salary</td>
+                    <td>
+                        <div>
+                            <button @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+
             }
-     
-        
-    </tbody>
-</table>
+
+        </tbody>
+
+    </table>
+
 }
+
 
 @code {
 
@@ -59,19 +69,29 @@ else
         Employees = result ?? new List<Employee>();
     }
 
-    private async Task DeleteEmployee(int id)
+    async Task DeleteEmployee(int id)
     {
-        var apiUrl = $"https://localhost:7109/api/Employee/Delete/{id}";
+        var apiUrl = "https://localhost:7109/api/Employee/DeleteById";
         using var httpClient = new HttpClient();
-        var response = await httpClient.DeleteAsync(apiUrl);
+
+        var response = await httpClient.GetFromJsonAsync($"/api/employees/{id}");
         if (response.IsSuccessStatusCode)
         {
-            Employees.RemoveAll(e => e.Id == id);
-        }else
-        {
-            Console.WriteLine("Failed deleting employee");
+            try
+            {
+                Employees = await httpClient.GetFromJsonAsync<List<Employee>>(apiUrl);
+                 
+
+            }catch (Exception e)
+            {
+
+                Console.WriteLine("Delete failed: " + response.StatusCode);
+                
+            }
+            }
         }
-    }
+
+
 
     private void EditEmployee(int id)
     {
