@@ -1,0 +1,80 @@
+﻿@using EmployeeManagementPortal.Models;
+@page "/EmployeeManagement"
+
+<PageTitle>Employee Management</PageTitle>
+
+<h1>Employee Management</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (Employees == null)
+
+{
+
+<p><em>Loading...</em></p>
+
+}
+
+else
+
+{
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Position</th>
+            <th>Department</th>
+            <th>Salary</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (var employee in Employees)
+        {
+            <tr>
+                <td>@employee.Id</td>
+                <td>@employee.Position</td>
+                <td>@employee.Department</td>
+                <td>@employee.Salary</td>
+            </tr>
+            }
+     
+        
+    </tbody>
+</table>
+}
+
+@code {
+
+
+    private List<Employee> Employees = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var apiUrl = "https://localhost:7109/api/Employee/GetAll";
+        using var httpClient = new HttpClient();
+
+        var result = await httpClient.GetFromJsonAsync<List<Employee>>(apiUrl);
+        Employees = result ?? new List<Employee>();
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        var apiUrl = $"https://localhost:7109/api/Employee/Delete/{id}";
+        using var httpClient = new HttpClient();
+        var response = await httpClient.DeleteAsync(apiUrl);
+        if (response.IsSuccessStatusCode)
+        {
+            Employees.RemoveAll(e => e.Id == id);
+        }else
+        {
+            Console.WriteLine("Failed deleting employee");
+        }
+    }
+
+    private void EditEmployee(int id)
+    {
+        // NavigationManager.NavigateTo($"/edit/{id}");
+    }
+}
