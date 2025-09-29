@@ -42,7 +42,7 @@ else
                     <td>@employee.Department</td>
                     <td>@employee.Salary</td>
                     <td>
-                        <button @onclick="() => EditEmployee(employee.Id)">Edit</button>
+                        <button @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
                         <button @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
                     </td>
                 </tr>
@@ -91,7 +91,7 @@ else
         }
     }
 
-    void EditEmployee(int id)
+    void UpdateEmployee(int id)
     {
         NavigationManager.NavigateTo($"/edit/{id}");
     }

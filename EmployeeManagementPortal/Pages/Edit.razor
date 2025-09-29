@@ -50,7 +50,7 @@ else
         employee = await Http.GetFromJsonAsync<Employee>($"https://localhost:7109/api/Employee/GetById?id={Id}");
     }
 
-    private async Task HandleValidSubmit()
+    public async Task HandleValidSubmit()
     {
         try{
 

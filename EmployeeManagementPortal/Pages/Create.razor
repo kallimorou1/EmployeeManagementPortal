@@ -36,18 +36,19 @@ else
 
 }
 @code {
+
     [Parameter]
 
     public int Id { get; set; }
 
     private Employee? employee = null;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        employee = await Http.GetFromJsonAsync<Employee>($"https://localhost:7109/api/Employee/GetById?id={Id}");
+        employee = new Employee();
     }
 
-    private async Task HandleValidSubmit()
+    public async Task HandleValidSubmit()
     {
         try
         {
@@ -56,6 +57,7 @@ else
 
             if (response.IsSuccessStatusCode)
             {
+               
                 Navigation.NavigateTo("/EmployeeManagement");
             }
             else
@@ -72,4 +74,4 @@ else
     }
 }
 
-}
+
