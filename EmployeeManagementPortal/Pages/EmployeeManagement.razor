@@ -1,4 +1,5 @@
 ﻿@using EmployeeManagementPortal.Models;
+@inject NavigationManager NavigationManager
 @page "/EmployeeManagement"
 
 <PageTitle>Employee Management</PageTitle>
@@ -7,7 +8,7 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (Employees == null)
+@if (Employees == null || Employees.Count == 0)
 
 {
 
@@ -29,6 +30,7 @@ else
                 <th>Salary</th>
             </tr>
         </thead>
+
         <tbody>
 
             @foreach (var employee in Employees)
@@ -40,24 +42,24 @@ else
                     <td>@employee.Department</td>
                     <td>@employee.Salary</td>
                     <td>
-                        <div>
-                            <button @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
-                        </div>
+                        <button @onclick="() => EditEmployee(employee.Id)">Edit</button>
+                        <button @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
                     </td>
                 </tr>
-
+                
             }
 
         </tbody>
-
     </table>
+  
+    <button @onclick="CreateEmployee">Create</button>
 
 }
 
 
 @code {
 
-
+    // List to hold employee data
     private List<Employee> Employees = new();
 
     protected override async Task OnInitializedAsync()
@@ -69,32 +71,35 @@ else
         Employees = result ?? new List<Employee>();
     }
 
+    // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
     {
-        var apiUrl = "https://localhost:7109/api/Employee/DeleteById";
+        var apiUrl = $"https://localhost:7109/api/Employee/DeleteById?id={id}";
         using var httpClient = new HttpClient();
 
-        var response = await httpClient.GetFromJsonAsync($"/api/employees/{id}");
+        var response = await httpClient.DeleteAsync(apiUrl);
+
         if (response.IsSuccessStatusCode)
         {
-            try
-            {
-                Employees = await httpClient.GetFromJsonAsync<List<Employee>>(apiUrl);
-                 
+            await OnInitializedAsync(); // Refresh the list after deletion
+            StateHasChanged();
 
-            }catch (Exception e)
-            {
-
-                Console.WriteLine("Delete failed: " + response.StatusCode);
-                
-            }
-            }
         }
-
-
-
-    private void EditEmployee(int id)
-    {
-        // NavigationManager.NavigateTo($"/edit/{id}");
+        else
+        {
+            
+        }
     }
+
+    void EditEmployee(int id)
+    {
+        NavigationManager.NavigateTo($"/edit/{id}");
+    }
+
+    void CreateEmployee()
+    {
+        NavigationManager.NavigateTo("/create");
+    }
+
+   
 }

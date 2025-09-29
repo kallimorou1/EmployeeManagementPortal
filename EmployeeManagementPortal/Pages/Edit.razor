@@ -1,10 +1,77 @@
-﻿@page "/edit"
+﻿@page "/edit/{Id:int}"
+@using EmployeeManagementPortal.Models;
+@using System.ComponentModel.DataAnnotations;
 @inject NavigationManager Navigation
+@inject HttpClient Http
 
 
 <h3>Edit Employee</h3>
 
- 
-@code {
-
+@if (employee == null)
+{
+    <p><em>Loading...</em></p>
 }
+else
+{
+    <EditForm Model="employee" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div>
+            <label for="name">Name:</label>
+            <InputText id="name" @bind-Value="employee.Name" />
+        </div>
+        <div>
+            <label for="position">Position:</label>
+            <InputText id="position" @bind-Value="employee.Position" />
+        </div>
+        <div>
+            <label for="department">Department:</label>
+            <InputText id="department" @bind-Value="employee.Department" />
+        </div>
+        <div>
+            <label for="salary">Salary:</label>
+            <InputNumber id="salary" @bind-Value="employee.Salary" />
+            <button type="submit">Save</button>
+        </div>
+    </EditForm>
+
+    
+}
+
+@code {
+    [Parameter]
+
+    public int Id { get; set; }
+
+    private Employee? employee = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await Http.GetFromJsonAsync<Employee>($"https://localhost:7109/api/Employee/GetById?id={Id}");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try{
+
+        var response = await Http.PutAsJsonAsync("https://localhost:7109/api/Employee/Update", employee);
+
+        if (response.IsSuccessStatusCode)
+        {
+                Navigation.NavigateTo("/EmployeeManagement");
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"API Error: {response.StatusCode} - {error}");
+        }
+    } 
+    catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+     
+        }
+}  
+
+} 
+
