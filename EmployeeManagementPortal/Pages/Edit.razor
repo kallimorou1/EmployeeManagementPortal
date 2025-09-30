@@ -7,6 +7,10 @@
 
 <h3>Edit Employee</h3>
 
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="@messageClass">@message</div>
+}
 @if (employee == null)
 {
     <p><em>Loading...</em></p>
@@ -35,7 +39,7 @@ else
         </div>
     </EditForm>
 
-    
+    <button @onclick="EmployeeManagement">Back to Employee List</button>  
 }
 
 @code {
@@ -44,6 +48,9 @@ else
     public int Id { get; set; }
 
     private Employee? employee = null;
+
+    private string? message = null;
+    private string messageClass = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -54,24 +61,40 @@ else
     {
         try{
 
-        var response = await Http.PutAsJsonAsync("https://localhost:7109/api/Employee/Update", employee);
+            var response = await Http.PutAsJsonAsync("https://localhost:7109/api/Employee/Update", employee);
 
-        if (response.IsSuccessStatusCode)
-        {
+            if (response.IsSuccessStatusCode)
+            {
+                message = "Employee updated successfully!";
+                messageClass = "alert alert-success";
+                StateHasChanged();
+                await Task.Delay(2500);
                 Navigation.NavigateTo("/EmployeeManagement");
-        }
-        else
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                message = $"Failed to apdate employee: {error}";
+                messageClass = "alert alert-danger";
+                Console.WriteLine($"API Error: {response.StatusCode} - {error}");
+            }
+        } 
+        catch (HttpRequestException)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"API Error: {response.StatusCode} - {error}");
+            message = "Network error. Please check your connection.";
+            messageClass = "alert alert-danger";
         }
-    } 
-    catch (Exception ex)
+        catch (Exception ex)
         {
+            message = $"Error: {ex.Message}";
             Console.WriteLine($"Exception: {ex.Message}");
      
         }
 }  
+    private void EmployeeManagement()
+    {
+        Navigation.NavigateTo("/EmployeeManagement");
+    }
 
 } 
 

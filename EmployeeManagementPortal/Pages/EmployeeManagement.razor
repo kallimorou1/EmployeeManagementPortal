@@ -8,6 +8,10 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="@messageClass">@message</div>
+}
 @if (Employees == null || Employees.Count == 0)
 
 {
@@ -28,6 +32,7 @@ else
                 <th>Position</th>
                 <th>Department</th>
                 <th>Salary</th>
+                <th>Actions</th>
             </tr>
         </thead>
 
@@ -44,6 +49,7 @@ else
                     <td>
                         <button @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
                         <button @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
+
                     </td>
                 </tr>
                 
@@ -56,11 +62,14 @@ else
 
 }
 
-
 @code {
 
     // List to hold employee data
     private List<Employee> Employees = new();
+
+    // Employee? employee = null;
+    private string? message = null;
+    private string messageClass = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,22 +84,40 @@ else
     async Task DeleteEmployee(int id)
     {
         var apiUrl = $"https://localhost:7109/api/Employee/DeleteById?id={id}";
-        using var httpClient = new HttpClient();
+        
 
-        var response = await httpClient.DeleteAsync(apiUrl);
+        try{
+
+            using var httpClient = new HttpClient();
+            var response = await httpClient.DeleteAsync(apiUrl);
 
         if (response.IsSuccessStatusCode)
         {
             await OnInitializedAsync(); // Refresh the list after deletion
-            StateHasChanged();
+            message = "Employee deleted successfully!";
+            messageClass = "alert alert-success";
 
         }
         else
         {
-            
+            var errorContent = await response.Content.ReadAsStringAsync();
+            message = $"Error deleting employee: {errorContent}";
+            messageClass = "alert alert-danger";
         }
     }
+    catch (HttpRequestException)
+    {
+        message = "Network error. Unable to connect to the server.";
+        messageClass = "alert alert-danger";
+    }
+    catch (Exception ex)
+    {
+        message = $"Unexpected error: {ex.Message}";
+        messageClass = "alert alert-danger";
+    }
 
+    StateHasChanged();
+}
     void UpdateEmployee(int id)
     {
         NavigationManager.NavigateTo($"/edit/{id}");
