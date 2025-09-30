@@ -47,7 +47,7 @@ else
                     <td>@employee.Department</td>
                     <td>@employee.Salary</td>
                     <td>
-                        <button @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
+                        <button class="btn btn-warning" @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
                         <button class="btn btn-danger" @onclick="() => ShowDeleteModal(employee.Id)">Delete</button>
 
                     </td>
@@ -57,8 +57,8 @@ else
 
         </tbody>
     </table>
-  
-    <button @onclick="CreateEmployee">Create</button>
+
+    <button class="btn btn-primary" @onclick="CreateEmployee">Create</button>
 
 
     <!-- Delete Confirmation Modal -->
