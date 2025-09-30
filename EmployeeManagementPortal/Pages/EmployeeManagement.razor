@@ -48,7 +48,7 @@ else
                     <td>@employee.Salary</td>
                     <td>
                         <button @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
-                        <button @onclick="() => DeleteEmployee(employee.Id)">Delete</button>
+                        <button class="btn btn-danger" @onclick="() => ShowDeleteModal(employee.Id)">Delete</button>
 
                     </td>
                 </tr>
@@ -60,6 +60,30 @@ else
   
     <button @onclick="CreateEmployee">Create</button>
 
+
+    <!-- Delete Confirmation Modal -->
+    @if (isModalVisible)
+    {
+        <div class="modal show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="close" @onclick="HideDeleteModal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this employee?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideDeleteModal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteEmployee">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 }
 
 @code {
@@ -67,9 +91,13 @@ else
     // List to hold employee data
     private List<Employee> Employees = new();
 
-    // Employee? employee = null;
+
     private string? message = null;
     private string messageClass = "";
+
+    // State for modal and employee ID to be deleted
+    private bool isModalVisible = false;
+    private int employeeIdToDelete = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,40 +112,40 @@ else
     async Task DeleteEmployee(int id)
     {
         var apiUrl = $"https://localhost:7109/api/Employee/DeleteById?id={id}";
-        
+
 
         try{
 
             using var httpClient = new HttpClient();
             var response = await httpClient.DeleteAsync(apiUrl);
 
-        if (response.IsSuccessStatusCode)
-        {
-            await OnInitializedAsync(); // Refresh the list after deletion
-            message = "Employee deleted successfully!";
-            messageClass = "alert alert-success";
+            if (response.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync(); // Refresh the list after deletion
+                message = "Employee deleted successfully!";
+                messageClass = "alert alert-success";
 
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                message = $"Error deleting employee: {errorContent}";
+                messageClass = "alert alert-danger";
+            }
         }
-        else
+        catch (HttpRequestException)
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            message = $"Error deleting employee: {errorContent}";
+            message = "Network error. Unable to connect to the server.";
             messageClass = "alert alert-danger";
         }
-    }
-    catch (HttpRequestException)
-    {
-        message = "Network error. Unable to connect to the server.";
-        messageClass = "alert alert-danger";
-    }
-    catch (Exception ex)
-    {
-        message = $"Unexpected error: {ex.Message}";
-        messageClass = "alert alert-danger";
-    }
+        catch (Exception ex)
+        {
+            message = $"Unexpected error: {ex.Message}";
+            messageClass = "alert alert-danger";
+        }
 
-    StateHasChanged();
-}
+        StateHasChanged();
+    }
     void UpdateEmployee(int id)
     {
         NavigationManager.NavigateTo($"/edit/{id}");
@@ -128,5 +156,25 @@ else
         NavigationManager.NavigateTo("/create");
     }
 
+    // Show the delete confirmation modal
+    private void ShowDeleteModal(int id)
+    {
+        employeeIdToDelete = id;  // Store the ID of the employee to delete
+        isModalVisible = true; // Show the modal
+    }
+
+    // Hide the delete confirmation modal
+    private void HideDeleteModal()
+    {
+        isModalVisible = false;  // Hide the modal
+    }
+
+    // Confirm delete and call DeleteEmployee
+    private async Task ConfirmDeleteEmployee()
+    {
+        await DeleteEmployee(employeeIdToDelete);  // Delete the employee
+        HideDeleteModal();  // Close the modal after deletion
+    }
    
+}
 }

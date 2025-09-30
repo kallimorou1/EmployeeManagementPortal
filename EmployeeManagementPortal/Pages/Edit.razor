@@ -74,7 +74,7 @@ else
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                message = $"Failed to apdate employee: {error}";
+                message = $"Failed to update employee: {error}";
                 messageClass = "alert alert-danger";
                 Console.WriteLine($"API Error: {response.StatusCode} - {error}");
             }

@@ -72,7 +72,8 @@ else
             if (response.IsSuccessStatusCode)
             {
                 message = "Employee created successfully!";
-                messageClass = "alert alert-success";
+                messageClass = "alert alert-success"; 
+                StateHasChanged();
                 await Task.Delay(2500);
                 Navigation.NavigateTo("/EmployeeManagement");
             }
