@@ -1,15 +1,26 @@
+using EmployeeManagement.Portal;
+using EmployeeManagementPortal.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using EmployeeManagementPortal;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<App>("#EmployeeManagement");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Configure base address to API
-builder.Services.AddScoped(sp => new HttpClient
+builder.Services.AddHttpClient("EmployeeManagementAPI", client =>
 {
-    BaseAddress = new Uri("https://localhost:7109/") // API base URL
+    client.BaseAddress = new Uri("https://localhost:7109");
+    // Additional configuration (headers, timeouts, etc.)
+});
+
+builder.Services.AddScoped(sp =>
+{ 
+var factory = sp.GetRequiredService<IHttpClientFactory>();
+var client = factory.CreateClient("EmployeeManagementAPI");
+return new EmployeeService(client);
 });
 
 await builder.Build().RunAsync();

@@ -1,6 +1,7 @@
 ﻿@page "/edit/{Id:int}"
 @using System.ComponentModel.DataAnnotations;
 @using global::EmployeeManagement.Shared.Models
+@inject EmployeeManagementPortal.Services.EmployeeService EmployeeService
 @inject NavigationManager Navigation
 @inject HttpClient Http
 

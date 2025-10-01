@@ -1,5 +1,7 @@
 ﻿@inject NavigationManager NavigationManager
 @page "/EmployeeManagement"
+@inject EmployeeManagementPortal.Services.EmployeeService EmployeeService
+@inject IHttpClientFactory HttpClientFactory
 
 
 <PageTitle>Employee Management</PageTitle>
@@ -98,15 +100,8 @@ else
     // State for modal and employee ID to be deleted
     private bool isModalVisible = false;
     private int employeeIdToDelete = 0;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var apiUrl = "https://localhost:7109/api/Employee/GetAll";
-        using var httpClient = new HttpClient();
-
-        var result = await httpClient.GetFromJsonAsync<List<Employee>>(apiUrl);
-        Employees = result ?? new List<Employee>();
-    }
+    
+    
 
     // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
