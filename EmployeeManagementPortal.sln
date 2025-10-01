@@ -5,8 +5,6 @@ VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeManagementPortal", "EmployeeManagementPortal\EmployeeManagementPortal.csproj", "{1C3CC729-D897-41C0-94A5-5E26606A7E92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeManagementPortal.Shared", "EmployeeManagementPortal.Shared\EmployeeManagementPortal.Shared.csproj", "{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,18 +27,6 @@ Global
 		{1C3CC729-D897-41C0-94A5-5E26606A7E92}.Release|x64.Build.0 = Release|Any CPU
 		{1C3CC729-D897-41C0-94A5-5E26606A7E92}.Release|x86.ActiveCfg = Release|Any CPU
 		{1C3CC729-D897-41C0-94A5-5E26606A7E92}.Release|x86.Build.0 = Release|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Debug|x64.Build.0 = Debug|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Debug|x86.Build.0 = Debug|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Release|x64.ActiveCfg = Release|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Release|x64.Build.0 = Release|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Release|x86.ActiveCfg = Release|Any CPU
-		{7B6CC311-0E75-4DB0-B82E-32B24FCC4ABA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
