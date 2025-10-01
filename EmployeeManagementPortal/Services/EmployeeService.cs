@@ -1,6 +1,7 @@
 ﻿using EmployeeManagement.Shared.Models;
 using System.Net.Http.Json;
 using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
 
 namespace EmployeeManagementPortal.Services
 {
@@ -15,18 +16,23 @@ namespace EmployeeManagementPortal.Services
 
         public Task<List<Employee>> GetAllEmployees()
         {
-            throw new NotImplementedException();
+            var employees = _httpClient.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
+            return employees;
         }
 
         public Task<Employee> GetEmployeeById(int id)
         {
-            throw new NotImplementedException();
+            var employee = _httpClient.GetFromJsonAsync<Employee>($"api/Employee/GetById?id={id}");
+            return employee;
         }
         public Task<Employee> AddEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+           var addedEmployee = _httpClient.PostAsJsonAsync("api/Employee/Create", employee)
+                .ContinueWith(task => task.Result.Content.ReadFromJsonAsync<Employee>())
+                .Unwrap();
+            return addedEmployee;
         }
-        public Task<Employee> UpdateEmployee(Employee employee)
+        public async Task<Employee> UpdateEmployee(Employee employee)
         {
             throw new NotImplementedException();
         }
