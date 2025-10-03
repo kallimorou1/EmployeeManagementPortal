@@ -1,8 +1,10 @@
 ﻿@page "/edit/{Id:int}"
 @using System.ComponentModel.DataAnnotations;
+@using global::EmployeeManagement.Portal.Services
 @using global::EmployeeManagement.Shared.Models
 @inject NavigationManager Navigation
 @inject IHttpClientFactory HttpClientFactory
+@inject EmployeeService EmployeeService
 
 
 <h3>Edit Employee</h3>
@@ -46,8 +48,6 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private HttpClient? _httpClient;
-
     private Employee? employee = null;
 
     private string? message = null;
@@ -74,9 +74,9 @@ else
     {
         try
         {
-            var response = await client.PutAsJsonAsync($"api/Employee/Update?id={employee.Id}", employee);
+            var response = await EmployeeService.UpdateEmployee(employee);
 
-            if (response.IsSuccessStatusCode)
+            if (response)
             {
                 message = "Employee updated successfully!";
                 messageClass = "alert alert-success";
@@ -86,10 +86,9 @@ else
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                message = $"Failed to update employee: {error}";
+                message = "Failed to update employee";
                 messageClass = "alert alert-danger";
-                Console.WriteLine($"API Error: {response.StatusCode} - {error}");
+               
             }
         }
         catch (HttpRequestException)

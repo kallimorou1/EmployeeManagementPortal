@@ -1,6 +1,8 @@
 ﻿@inject NavigationManager NavigationManager
 @page "/EmployeeManagement"
+@using global::EmployeeManagement.Portal.Services
 @inject IHttpClientFactory HttpClientFactory
+@inject EmployeeService EmployeeService
 
 
 <PageTitle>Employee Management</PageTitle>
@@ -89,7 +91,6 @@ else
 
 @code {
 
-    private HttpClient? _httpClient;
 
     // List to hold employee data
     private List<Employee> Employees = new();
@@ -106,8 +107,9 @@ else
     {
         try
         {
-            var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
-            var employees = await client.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
+            // var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
+            // var employees = await client.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
+            var employees = await EmployeeService.GetAll();
             Employees = employees ?? new List<Employee>();
 
             message = null;
@@ -130,15 +132,13 @@ else
     // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
     {
-        if (_httpClient == null) 
-        return;
-
 
         try{
 
-            var response = await _httpClient.DeleteAsync($"api/Employee/DeleteById?id={id}");
+            var response = await EmployeeService.DeleteById(id);
+          
 
-            if (response.IsSuccessStatusCode)
+            if (response)
             {
                 await OnInitializedAsync(); // Refresh the list after deletion
                 message = "Employee deleted successfully!";
@@ -147,8 +147,7 @@ else
             }
             else
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                message = $"Error deleting employee: {errorContent}";
+                message = "Error deleting employee";
                 messageClass = "alert alert-danger";
             }
         }
