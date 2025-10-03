@@ -1,6 +1,5 @@
 ﻿@inject NavigationManager NavigationManager
 @page "/EmployeeManagement"
-@inject EmployeeManagementPortal.Services.EmployeeService EmployeeService
 @inject IHttpClientFactory HttpClientFactory
 
 
@@ -90,6 +89,8 @@ else
 
 @code {
 
+    private HttpClient? _httpClient;
+
     // List to hold employee data
     private List<Employee> Employees = new();
 
@@ -101,18 +102,41 @@ else
     private bool isModalVisible = false;
     private int employeeIdToDelete = 0;
     
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
+            var employees = await client.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
+            Employees = employees ?? new List<Employee>();
+
+            message = null;
+            messageClass = "";
+        }
+        catch (HttpRequestException)
+        {
+            message = "Network error. Unable to fetch employees.";
+            messageClass = "alert alert-danger";
+        }
+        catch (Exception ex)
+        {
+            message = $"Unexpected error: {ex.Message}";
+            messageClass = "alert alert-danger";
+        }
+    }
+
     
 
     // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
     {
-        var apiUrl = $"https://localhost:7109/api/Employee/DeleteById?id={id}";
+        if (_httpClient == null) 
+        return;
 
 
         try{
 
-            using var httpClient = new HttpClient();
-            var response = await httpClient.DeleteAsync(apiUrl);
+            var response = await _httpClient.DeleteAsync($"api/Employee/DeleteById?id={id}");
 
             if (response.IsSuccessStatusCode)
             {

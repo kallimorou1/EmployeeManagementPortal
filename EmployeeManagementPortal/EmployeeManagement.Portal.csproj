@@ -16,4 +16,8 @@
     <ProjectReference Include="..\..\EmployeeManagement.Shared\EmployeeManagement.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="EmployeeManagement\" />
+  </ItemGroup>
+
 </Project>

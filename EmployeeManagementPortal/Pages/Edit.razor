@@ -1,9 +1,8 @@
 ﻿@page "/edit/{Id:int}"
 @using System.ComponentModel.DataAnnotations;
 @using global::EmployeeManagement.Shared.Models
-@inject EmployeeManagementPortal.Services.EmployeeService EmployeeService
 @inject NavigationManager Navigation
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 
 
 <h3>Edit Employee</h3>
@@ -40,29 +39,42 @@ else
         </div>
     </EditForm>
 
-    <button @onclick="EmployeeManagement">Back to Employee List</button>  
+    <button class="btn btn-info" @onclick="EmployeeManagement">Back to Employee List</button>
 }
 
 @code {
     [Parameter]
-
     public int Id { get; set; }
+
+    private HttpClient? _httpClient;
 
     private Employee? employee = null;
 
     private string? message = null;
     private string messageClass = "";
 
+    // Create HttpClient using factory
+    private HttpClient client => HttpClientFactory.CreateClient("EmployeeManagement.API");
+
     protected override async Task OnInitializedAsync()
     {
-        employee = await Http.GetFromJsonAsync<Employee>($"https://localhost:7109/api/Employee/GetById?id={Id}");
+        try
+        {
+            var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
+            employee = await client.GetFromJsonAsync<Employee>($"api/Employee/GetById?id={Id}");
+        }
+        catch (Exception ex)
+        {
+            message = $"Failed to load employee: {ex.Message}";
+            messageClass = "alert alert-danger";
+        }
     }
 
     public async Task HandleValidSubmit()
     {
-        try{
-
-            var response = await Http.PutAsJsonAsync("https://localhost:7109/api/Employee/Update", employee);
+        try
+        {
+            var response = await client.PutAsJsonAsync($"api/Employee/Update?id={employee.Id}", employee);
 
             if (response.IsSuccessStatusCode)
             {
@@ -79,7 +91,7 @@ else
                 messageClass = "alert alert-danger";
                 Console.WriteLine($"API Error: {response.StatusCode} - {error}");
             }
-        } 
+        }
         catch (HttpRequestException)
         {
             message = "Network error. Please check your connection.";
@@ -89,13 +101,13 @@ else
         {
             message = $"Error: {ex.Message}";
             Console.WriteLine($"Exception: {ex.Message}");
-     
         }
-}  
+    }
+
+
     private void EmployeeManagement()
     {
         Navigation.NavigateTo("/EmployeeManagement");
     }
-
-} 
+}
 

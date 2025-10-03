@@ -1,8 +1,7 @@
 ﻿@page "/create"
 @using global::EmployeeManagement.Shared.Models
-@inject EmployeeManagementPortal.Services.EmployeeService EmployeeService
 @inject NavigationManager Navigation
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 
 <h3>Create a new employee</h3>
 
@@ -66,8 +65,9 @@ else
     {
         try
         {
-
-            var response = await Http.PostAsJsonAsync("https://localhost:7109/api/Employee/Add", employee);
+            var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
+            // Use injected HttpClient to POST the employee
+            var response = await client.PostAsJsonAsync("api/Employee/Add", employee);
 
             if (response.IsSuccessStatusCode)
             {

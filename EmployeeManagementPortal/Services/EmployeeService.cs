@@ -1,44 +1,42 @@
 ﻿using EmployeeManagement.Shared.Models;
 using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml.Linq;
 
-namespace EmployeeManagementPortal.Services
+namespace EmployeeManagement.Portal.Services
 {
-    public class EmployeeService : IEmployeeService
+    public class EmployeeService
     {
-        private readonly HttpClient _httpClient;
+            private readonly HttpClient _httpClient;
 
-        public EmployeeService(HttpClient httpClient)
+            public EmployeeService(HttpClient httpClient)
+            {
+                _httpClient = httpClient;
+            }
+
+        public async Task<List<Employee>> GetAllEmployeesAsync()
         {
-            _httpClient = httpClient;
+
+            return await _httpClient.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
         }
 
-        public Task<List<Employee>> GetAllEmployees()
+        public async Task<Employee?> GetEmployeeById(int id)
         {
-            var employees = _httpClient.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
-            return employees;
+            return await _httpClient.GetFromJsonAsync<Employee>($"api/Employee/{id}");
         }
 
-        public Task<Employee> GetEmployeeById(int id)
+        public async Task<bool> AddEmployeeAsync(Employee newEmployee)
         {
-            var employee = _httpClient.GetFromJsonAsync<Employee>($"api/Employee/GetById?id={id}");
-            return employee;
+            var response = await _httpClient.PostAsJsonAsync("api/Employee/Add/", newEmployee);
+            return response.IsSuccessStatusCode;
         }
-        public Task<Employee> AddEmployee(Employee employee)
+        public async Task<bool> UpdateEmployeeAsync(Employee updatedEmployee)
         {
-           var addedEmployee = _httpClient.PostAsJsonAsync("api/Employee/Create", employee)
-                .ContinueWith(task => task.Result.Content.ReadFromJsonAsync<Employee>())
-                .Unwrap();
-            return addedEmployee;
-        }
-        public async Task<Employee> UpdateEmployee(Employee employee)
+            var response = await _httpClient.PutAsJsonAsync($"/api/Employee/Update{updatedEmployee.Id}", updatedEmployee);
+            return response.IsSuccessStatusCode;
+        }       
+        public async Task<bool> DeleteEmployeeAsync(int id)
         {
-            throw new NotImplementedException();
-        }
-        public Task<bool> DeleteEmployee(int id)
-        {
-            throw new NotImplementedException();
+            var response = await _httpClient.DeleteAsync($"api/Employee/DeleteById/{id}");
+            return response.IsSuccessStatusCode;
         }
     }
 }
