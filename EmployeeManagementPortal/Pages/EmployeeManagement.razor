@@ -21,6 +21,15 @@
     <div class="@messageClass">@message</div>
 }
 
+<div class="form-inline mb-2">
+    <input type="text" class="form-control mr-2"
+           @bind="searchTerm"
+           placeholder="Search by name, department, or position" />
+    <button type="button" class="btn btn-primary mr-2" @onclick="ApplyFilter">Apply</button>
+    <button type="button" class="btn btn-danger" @onclick="ClearFilter">Clear</button>
+</div>
+
+
 <Pagination TotalPagesQuantity="@TotalPagesQuantity"
             currentPage="@currentPage"
             Radius="2"
@@ -43,7 +52,7 @@ else
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Name</th>
+                <th>Name </th>
                 <th>Position</th>
                 <th>Department</th>
                 <th>Salary</th>
@@ -108,9 +117,7 @@ else
     private int currentPage = 1;
     private int TotalPagesQuantity = 1;
     private List<Employee> Employees = new();
-
-
-
+    private string searchTerm = string.Empty;
     private string? message = null;
     private string messageClass = "";
 
@@ -118,13 +125,28 @@ else
     private bool isModalVisible = false;
     private int employeeIdToDelete = 0;
 
+    private async Task ApplyFilter()
+    {
+        currentPage = 1; // Reset to first page after applying 
+        await LoadEmployees(currentPage);
+    }
+
+    private async Task ClearFilter()
+    {
+        searchTerm = null;
+        currentPage = 1; // Reset to first page after clearing 
+        await LoadEmployees(currentPage);
+    }
+ 
+
     protected override async Task OnInitializedAsync() => await LoadEmployees(currentPage);
 
     private async Task LoadEmployees(int page)
     {
-        var (employees, totalPages) = await EmployeeService.GetAll(page);
+        var (employees, totalPages) = await EmployeeService.GetAll(
+            page, 10, searchTerm);
         Employees = employees;
-        TotalPagesQuantity = totalPages; // ✅ sets total
+        TotalPagesQuantity = totalPages;
         currentPage = page;
     }
 
@@ -133,7 +155,7 @@ else
         await LoadEmployees(page);
     }
 
-
+    #region Delete Button 
     // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
     {
@@ -169,6 +191,10 @@ else
 
         StateHasChanged();
     }
+
+    #endregion
+
+    #region Naviation 
     void UpdateEmployee(int id)
     {
         NavigationManager.NavigateTo($"/edit/{id}");
@@ -178,7 +204,10 @@ else
     {
         NavigationManager.NavigateTo("/create");
     }
+    #endregion
 
+
+    #region Modal Filter
     // Show the delete confirmation modal
     private void ShowDeleteModal(int id)
     {
@@ -198,6 +227,6 @@ else
         await DeleteEmployee(employeeIdToDelete);  // Delete the employee
         HideDeleteModal();  // Close the modal after deletion
     }
-   
+   #endregion 
 }
 }
