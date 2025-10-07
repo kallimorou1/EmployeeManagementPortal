@@ -13,10 +13,28 @@ namespace EmployeeManagement.Portal.Services
                 _httpClient = httpClient;
             }
 
-        public async Task<List<Employee>> GetAll()
+
+        public async Task<(List<Employee> Employees, int TotalPages)> GetAll(int page = 1, int quantityPerPage = 10)
         {
-            return await _httpClient.GetFromJsonAsync<List<Employee>>("api/Employee/GetAll");
+            var response = await _httpClient.GetAsync($"api/Employee/GetAll?page={page}&quantityPerPage={quantityPerPage}");
+            response.EnsureSuccessStatusCode();
+
+            int totalPages = 1;
+            if (response.Headers.TryGetValues("pagesQuantity", out var values))
+            {
+                Console.WriteLine($"DEBUG: pagesQuantity header = {values.FirstOrDefault()}");
+                int.TryParse(values.FirstOrDefault(), out totalPages);
+            }else
+            {
+                Console.WriteLine("DEBUG: pagesQuantity header not found");
+            }
+
+            var employees = await response.Content.ReadFromJsonAsync<List<Employee>>();
+            return (employees ?? new List<Employee>(), totalPages);
         }
+
+
+
 
         public async Task<Employee?> GetById(int id)
         {

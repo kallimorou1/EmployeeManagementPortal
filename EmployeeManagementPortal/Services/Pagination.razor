@@ -11,7 +11,7 @@
             else if (link.Enabled)
             {
                 <li class="page-item">
-                    <a class="page-link" href="#" @onclick="() => SelectedPageInternal(link)">@link.Text</a>
+                    <a class="page-link" href="#" @onclick="() => SelectedPageInternal(link)" @onclick:preventDefault="true">@link.Text</a>
                 </li>
             }
             else
@@ -22,16 +22,15 @@
             }
         }
     </ul>
-    </nav>
-
+</nav>
 
 @code {
     [Parameter] public int currentPage { get; set; } = 1;
     [Parameter] public int TotalPagesQuantity { get; set; } = 1;
-    [Parameter] public int Radius { get; set; } = 10;
+    [Parameter] public int Radius { get; set; } = 2;
     [Parameter] public EventCallback<int> SelectedPage { get; set; }
-    List<LinkModel> links;
 
+    private List<LinkModel> links = new();
 
     protected override void OnParametersSet()
     {
@@ -40,27 +39,22 @@
 
     private async Task SelectedPageInternal(LinkModel link)
     {
-        if (link.Page == currentPage)
-        {
+        if (link.Page == currentPage || !link.Enabled)
             return;
-        }
-        if (!link.Enabled)
-        {
-            return;
-        }
-        
-        currentPage = link.Page;
+
+        // ✅ Don’t rely on this value internally — parent owns it.
         await SelectedPage.InvokeAsync(link.Page);
-        
     }
 
     private void LoadPages()
     {
-        links = new List<LinkModel>();
-        var isPreviousageEnabled = currentPage != 1;
-        var previousPage = currentPage - 1;
-        links.Add(new LinkModel(previousPage, isPreviousageEnabled, "Previous"));
+        links.Clear();
 
+        // Previous
+        bool isPreviousEnabled = currentPage > 1;
+        links.Add(new LinkModel(currentPage - 1, isPreviousEnabled, "Previous"));
+
+        // Numbered pages
         for (int i = 1; i <= TotalPagesQuantity; i++)
         {
             if (i >= currentPage - Radius && i <= currentPage + Radius)
@@ -72,29 +66,24 @@
             }
         }
 
-        var isNextPageEnabled = currentPage != TotalPagesQuantity;
-        var NextPage = currentPage + 1;
-        links.Add(new LinkModel(NextPage, isNextPageEnabled, "Next"));
+        // Next
+        bool isNextEnabled = currentPage < TotalPagesQuantity;
+        links.Add(new LinkModel(currentPage + 1, isNextEnabled, "Next"));
 
-
+        StateHasChanged(); 
     }
 
-    class LinkModel
+    private class LinkModel
     {
-        public LinkModel(int page)
-        : this(page, true) { }
+        public LinkModel(int page) : this(page, true) { }
 
+        public LinkModel(int page, bool enabled) : this(page, enabled, page.ToString()) { }
 
-        public LinkModel(int page, bool enabled)
-       : this(page, enabled, page.ToString()) 
-       { }
-
-       public LinkModel(int page, bool enabled, string text)
+        public LinkModel(int page, bool enabled, string text)
         {
-           Page = page;
-           Enabled = enabled;
-           Text = text;
-
+            Page = page;
+            Enabled = enabled;
+            Text = text;
         }
 
         public string Text { get; set; }
@@ -103,4 +92,3 @@
         public bool Active { get; set; } = false;
     }
 }
-

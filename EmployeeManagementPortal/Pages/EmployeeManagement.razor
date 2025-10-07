@@ -3,6 +3,9 @@
 @using global::EmployeeManagement.Portal.Services
 @inject IHttpClientFactory HttpClientFactory
 @inject EmployeeService EmployeeService
+@using System.IO
+
+
 
 
 
@@ -12,13 +15,17 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
+
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="@messageClass">@message</div>
 }
 
-<Pagination TotalPagesQuantity="TotalPageQuantity" currentPage="currentPage" Radius="2"
-            SelectedPage="SelectedPage"> </Pagination>
+<Pagination TotalPagesQuantity="@TotalPagesQuantity"
+            currentPage="@currentPage"
+            Radius="2"
+            SelectedPage="SelectedPage">
+</Pagination>
 
 @if (Employees == null || Employees.Count == 0)
 
@@ -98,9 +105,9 @@ else
 
 
     // List to hold employee data
-    private List<Employee> Employees = new();
     private int currentPage = 1;
-    private int TotalPageQuantity;
+    private int TotalPagesQuantity = 1;
+    private List<Employee> Employees = new();
 
 
 
@@ -110,33 +117,22 @@ else
     // State for modal and employee ID to be deleted
     private bool isModalVisible = false;
     private int employeeIdToDelete = 0;
-    
-    protected override async Task OnInitializedAsync()
+
+    protected override async Task OnInitializedAsync() => await LoadEmployees(currentPage);
+
+    private async Task LoadEmployees(int page)
     {
-
-       
-        try
-        {
-            
-            var employees = await EmployeeService.GetAll();
-            Employees = employees ?? new List<Employee>();
-
-            message = null;
-            messageClass = "";
-        }
-        catch (HttpRequestException)
-        {
-            message = "Network error. Unable to fetch employees.";
-            messageClass = "alert alert-danger";
-        }
-        catch (Exception ex)
-        {
-            message = $"Unexpected error: {ex.Message}";
-            messageClass = "alert alert-danger";
-        }
+        var (employees, totalPages) = await EmployeeService.GetAll(page);
+        Employees = employees;
+        TotalPagesQuantity = totalPages; // ✅ sets total
+        currentPage = page;
     }
 
-    
+    private async Task SelectedPage(int page)
+    {
+        await LoadEmployees(page);
+    }
+
 
     // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
