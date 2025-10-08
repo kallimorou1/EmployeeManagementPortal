@@ -13,8 +13,6 @@
 
 <h1>Employee Management</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
-
 
 @if (!string.IsNullOrEmpty(message))
 {
@@ -23,18 +21,37 @@
 
 <div class="form-inline mb-2">
     <input type="text" class="form-control mr-2"
-           @bind="searchTerm"
+           @bind="searchTerm" 
            placeholder="Search by name, department, or position" />
-    <button type="button" class="btn btn-primary mr-2" @onclick="ApplyFilter">Apply</button>
-    <button type="button" class="btn btn-danger" @onclick="ClearFilter">Clear</button>
 </div>
 
+    <div class="form-inline mb-2">
+        <label for="sortColumn" class="mr-2">Sort by:</label>
+        <select id="sortColumn" class="form-control mr-2" @bind="SortColumn" @bind:event="onchange">
+            <option value="Name">Name</option>
+            <option value="Position">Position</option>
+            <option value="Department">Department</option>
+            <option value="Salary">Salary</option>
+        </select>
+        <select id="sortOrder" class="form-control mr-2" @bind="SortOrder" @bind:event="onchange">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+        </select>
+    </div>
 
-<Pagination TotalPagesQuantity="@TotalPagesQuantity"
-            currentPage="@currentPage"
-            Radius="2"
-            SelectedPage="SelectedPage">
-</Pagination>
+
+    <button type="button" class="btn btn-primary mr-2" @onclick="ApplyFilter">Apply</button>
+    <button type="button" class="btn btn-danger" @onclick="ClearFilter">Clear</button>
+
+
+@if (Employees != null && Employees.Any())
+{
+    <Pagination TotalPagesQuantity="@TotalPagesQuantity"
+                currentPage="@currentPage"
+                Radius="2"
+                SelectedPage="SelectedPage">
+    </Pagination>
+}
 
 @if (Employees == null || Employees.Count == 0)
 
@@ -48,14 +65,15 @@ else
 
 {
 
+
     <table class="table">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Name </th>
-                <th>Position</th>
-                <th>Department</th>
-                <th>Salary</th>
+                <th> ID </th>
+                <th> Name </th>
+                <th>Position </th>
+                <th> Department </th>
+                <th>Salary </th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -76,7 +94,7 @@ else
 
                     </td>
                 </tr>
-                
+
             }
 
         </tbody>
@@ -93,7 +111,7 @@ else
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Confirm Deletion</h5>
-                <button type="button" class="close" @onclick="HideDeleteModal" aria-label="Close">
+                        <button type="button" class="close" @onclick="HideDeleteModal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -103,14 +121,14 @@ else
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="HideDeleteModal">Cancel</button>
                         <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteEmployee">Delete</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-}
+    }
 
-    @code {
+@code {
 
 
     // List to hold employee data
@@ -120,6 +138,8 @@ else
     private string searchTerm = string.Empty;
     private string? message = null;
     private string messageClass = "";
+    private string SortOrder = "asc";
+    private string? SortColumn = "Id";
 
     // State for modal and employee ID to be deleted
     private bool isModalVisible = false;
@@ -127,43 +147,91 @@ else
 
     private async Task ApplyFilter()
     {
-        currentPage = 1; // Reset to first page after applying 
+        currentPage = 1; //  Reset to first page after applying
+        paginationDto.Page = 1;
+        paginationDto.SearchTerm = searchTerm;
         await LoadEmployees(currentPage);
     }
 
     private async Task ClearFilter()
     {
-        searchTerm = null;
-        currentPage = 1; // Reset to first page after clearing 
+        searchTerm = string.Empty;
+        paginationDto.SearchTerm = null;
+        SortColumn = "Id";
+        SortOrder = "asc";
+        paginationDto.SortColumn = SortColumn;
+        paginationDto.SortOrder = Shared.Models.SortOrder.Ascending;
+
+        currentPage = 1; // Reset to first page after clearing
+        paginationDto.Page = 1;
         await LoadEmployees(currentPage);
     }
- 
 
-    protected override async Task OnInitializedAsync() => await LoadEmployees(currentPage);
+
+    protected override async Task OnInitializedAsync()
+    {
+        paginationDto = new PaginationDTO
+        {
+            Page = currentPage,
+            QuantityPerPage = 10,
+            SearchTerm = searchTerm,
+            SortColumn = SortColumn ?? "Id",
+            SortOrder = SortOrder?.Equals("asc", StringComparison.OrdinalIgnoreCase) == true
+            ? Shared.Models.SortOrder.Ascending
+            : Shared.Models.SortOrder.Descending
+        };
+        await LoadEmployees(currentPage);
+    }
 
     private async Task LoadEmployees(int page)
     {
-        var (employees, totalPages) = await EmployeeService.GetAll(
-            page, 10, searchTerm);
+        paginationDto.Page = page;
+        paginationDto.SortColumn = SortColumn ?? "Id";
+        paginationDto.SortOrder = SortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase)
+            ? Shared.Models.SortOrder.Ascending
+            : Shared.Models.SortOrder.Descending;
+
+        var (employees, totalPages) = await EmployeeService.GetAll(paginationDto);
         Employees = employees;
         TotalPagesQuantity = totalPages;
         currentPage = page;
     }
 
+    public PaginationDTO paginationDto { get; set; }
+    private async Task OnSortChanged(ChangeEventArgs e)
+    {
+        SortColumn = e.Value?.ToString() ?? "Id";
+        // Sync sort settings to DTO
+        paginationDto.SortColumn = SortColumn;
+        paginationDto.SortOrder = SortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase)
+            ? Shared.Models.SortOrder.Ascending
+            : Shared.Models.SortOrder.Descending;
+
+        // Reload first page sorted data
+        await LoadEmployees(1);
+
+        //re-render data to change sorting without refresh
+        StateHasChanged();
+    }
+
+ 
+
     private async Task SelectedPage(int page)
     {
+        paginationDto.Page = page;
         await LoadEmployees(page);
     }
 
-    #region Delete Button 
+    #region Delete Button
     // Method to delete an employee by ID
     async Task DeleteEmployee(int id)
     {
 
-        try{
+        try
+        {
 
             var response = await EmployeeService.DeleteById(id);
-          
+
 
             if (response)
             {
@@ -194,7 +262,7 @@ else
 
     #endregion
 
-    #region Naviation 
+    #region Naviation
     void UpdateEmployee(int id)
     {
         NavigationManager.NavigateTo($"/edit/{id}");
@@ -227,6 +295,6 @@ else
         await DeleteEmployee(employeeIdToDelete);  // Delete the employee
         HideDeleteModal();  // Close the modal after deletion
     }
-   #endregion 
+    #endregion
 }
 }

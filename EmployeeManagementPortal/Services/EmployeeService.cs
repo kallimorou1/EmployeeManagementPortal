@@ -13,25 +13,22 @@ namespace EmployeeManagement.Portal.Services
             {
                 _httpClient = httpClient;
             }
-
         public async Task<(List<Employee> Employees, int TotalPages)> GetAll(
-            int page = 1,
-            int quantityPerPage = 10,
-            string? searchTerm = null,
-            string? sortColumn = null)
+            PaginationDTO pagination)
         {
-            var url = $"api/Employee/GetAll?page={page}&quantityPerPage={quantityPerPage}";
+            var url = $"api/Employee/GetAll?page={pagination.Page}&quantityPerPage={pagination.QuantityPerPage}";
             
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-                url += $"&SearchTerm={Uri.EscapeDataString(searchTerm)}";
+            if (!string.IsNullOrWhiteSpace(pagination.SearchTerm))
+                url += $"&SearchTerm={Uri.EscapeDataString(pagination.SearchTerm)}";
 
-            if (!string.IsNullOrWhiteSpace(sortColumn))
-                url += $"&SortColumn={Uri.EscapeDataString(sortColumn)}&SortOrder={SortOrder.Ascending}";
+            if (!string.IsNullOrWhiteSpace(pagination.SortColumn))
+                url += $"&SortColumn={Uri.EscapeDataString(pagination.SortColumn)}&SortOrder={SortOrder.Ascending}";
 
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             int totalPages = 1;
+
             if (response.Headers.TryGetValues("pagesQuantity", out var values))
             {
                 int.TryParse(values.FirstOrDefault(), out totalPages);
@@ -40,6 +37,8 @@ namespace EmployeeManagement.Portal.Services
 
             var employees = await response.Content.ReadFromJsonAsync<List<Employee>>();
             return (employees ?? new List<Employee>(), totalPages);
+
+
         }
 
 
