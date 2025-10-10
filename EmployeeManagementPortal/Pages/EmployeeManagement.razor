@@ -1,8 +1,8 @@
 ﻿@inject NavigationManager NavigationManager
 @page "/EmployeeManagement"
 @using global::EmployeeManagement.Portal.Services
-@inject IHttpClientFactory HttpClientFactory
-@inject EmployeeService EmployeeService
+
+@inject IEmployeeService EmployeeService
 @using System.IO
 
 
@@ -21,27 +21,27 @@
 
 <div class="form-inline mb-2">
     <input type="text" class="form-control mr-2"
-           @bind="searchTerm" 
+           @bind="searchTerm"
            placeholder="Search by name, department, or position" />
 </div>
 
-    <div class="form-inline mb-2">
-        <label for="sortColumn" class="mr-2">Sort by:</label>
-        <select id="sortColumn" class="form-control mr-2" @bind="SortColumn" @bind:event="onchange">
-            <option value="Name">Name</option>
-            <option value="Position">Position</option>
-            <option value="Department">Department</option>
-            <option value="Salary">Salary</option>
-        </select>
-        <select id="sortOrder" class="form-control mr-2" @bind="SortOrder" @bind:event="onchange">
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-        </select>
-    </div>
+<div class="form-inline mb-2">
+    <label for="sortColumn" class="mr-2">Sort by:</label>
+    <select id="sortColumn" class="form-control mr-2" @bind="SortColumn" @bind:event="onchange">
+        <option value="Name">Name</option>
+        <option value="Position">Position</option>
+        <option value="Department">Department</option>
+        <option value="Salary">Salary</option>
+    </select>
+    <select id="sortOrder" class="form-control mr-2" @bind="SortOrder" @bind:event="onchange">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+    </select>
+</div>
 
 
-    <button type="button" class="btn btn-primary mr-2" @onclick="ApplyFilter">Apply</button>
-    <button type="button" class="btn btn-danger" @onclick="ClearFilter">Clear</button>
+<button type="button" class="btn btn-dark" @onclick="ApplyFilter">Apply</button>
+<button type="button" class="btn btn-dark" @onclick="ClearFilter">Clear</button>
 
 
 @if (Employees != null && Employees.Any())
@@ -57,7 +57,7 @@
 
 {
 
-    <p><em> Loading...</em></p>
+    <p><em> No employees found </em></p>
 
 }
 
@@ -66,8 +66,8 @@ else
 {
 
 
-    <table class="table">
-        <thead>
+    <table class="table bg-white shadow-sm">
+        <thead class="table-dark">
             <tr>
                 <th> ID </th>
                 <th> Name </th>
@@ -89,7 +89,7 @@ else
                     <td>@employee.Department</td>
                     <td>@employee.Salary</td>
                     <td>
-                        <button class="btn btn-warning" @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
+                        <button class="btn btn-primary" @onclick="() => UpdateEmployee(employee.Id)">Edit</button>
                         <button class="btn btn-danger" @onclick="() => ShowDeleteModal(employee.Id)">Delete</button>
 
                     </td>
@@ -100,7 +100,6 @@ else
         </tbody>
     </table>
 
-    <button class="btn btn-primary" @onclick="CreateEmployee">Create</button>
 
 
     <!-- Delete Confirmation Modal -->
@@ -119,7 +118,7 @@ else
                         <p>Are you sure you want to delete this employee?</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="HideDeleteModal">Cancel</button>
+                        <button type="button" class="btn btn-warning" @onclick="HideDeleteModal">Cancel</button>
                         <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteEmployee">Delete</button>
                     </div>
                 </div>
@@ -127,6 +126,9 @@ else
         </div>
 
     }
+}
+
+<button class="btn btn-light" @onclick="CreateEmployee">Create</button>
 
 @code {
 
@@ -144,6 +146,8 @@ else
     // State for modal and employee ID to be deleted
     private bool isModalVisible = false;
     private int employeeIdToDelete = 0;
+
+    public PaginationDTO paginationDto { get; set; }
 
     private async Task ApplyFilter()
     {
@@ -170,6 +174,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+
         paginationDto = new PaginationDTO
         {
             Page = currentPage,
@@ -181,10 +186,13 @@ else
             : Shared.Models.SortOrder.Descending
         };
         await LoadEmployees(currentPage);
+
     }
+   
 
     private async Task LoadEmployees(int page)
     {
+
         paginationDto.Page = page;
         paginationDto.SortColumn = SortColumn ?? "Id";
         paginationDto.SortOrder = SortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase)
@@ -195,26 +203,11 @@ else
         Employees = employees;
         TotalPagesQuantity = totalPages;
         currentPage = page;
-    }
 
-    public PaginationDTO paginationDto { get; set; }
-    private async Task OnSortChanged(ChangeEventArgs e)
-    {
-        SortColumn = e.Value?.ToString() ?? "Id";
-        // Sync sort settings to DTO
-        paginationDto.SortColumn = SortColumn;
-        paginationDto.SortOrder = SortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase)
-            ? Shared.Models.SortOrder.Ascending
-            : Shared.Models.SortOrder.Descending;
-
-        // Reload first page sorted data
-        await LoadEmployees(1);
-
-        //re-render data to change sorting without refresh
+        //refresh page
         StateHasChanged();
     }
 
- 
 
     private async Task SelectedPage(int page)
     {
@@ -235,9 +228,13 @@ else
 
             if (response)
             {
-                await OnInitializedAsync(); // Refresh the list after deletion
+                // Refresh the list to 1st page after deletion
+                currentPage = 1;
                 message = "Employee deleted successfully!";
                 messageClass = "alert alert-success";
+                StateHasChanged();
+                await Task.Delay(2000);
+                await OnInitializedAsync();
 
             }
             else
@@ -257,7 +254,7 @@ else
             messageClass = "alert alert-danger";
         }
 
-        StateHasChanged();
+
     }
 
     #endregion
@@ -296,5 +293,4 @@ else
         HideDeleteModal();  // Close the modal after deletion
     }
     #endregion
-}
 }

@@ -3,7 +3,7 @@
 @using global::EmployeeManagement.Shared.Models
 @inject NavigationManager Navigation
 @inject IHttpClientFactory HttpClientFactory
-@inject EmployeeService EmployeeService
+@inject IEmployeeService EmployeeService
 
 
 <h3>Create a new employee</h3>
@@ -69,22 +69,24 @@ else
         try
         {
             var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
-
-            var response = await EmployeeService.Add(employee);
-
-            if (response)
+            if (employee is not null)
             {
-                message = "Employee created successfully!";
-                messageClass = "alert alert-success"; 
-                StateHasChanged();
-                await Task.Delay(2500);
-                Navigation.NavigateTo("/EmployeeManagement");
-            }
-            else
-            {
-                message = "Failed to add employee";
-                messageClass = "alert alert-danger";
+                var response = await EmployeeService.Add(employee);
 
+                if (response)
+                {
+                    message = "Employee created successfully!";
+                    messageClass = "alert alert-success";
+                    StateHasChanged();
+                    await Task.Delay(2500);
+                    Navigation.NavigateTo("/EmployeeManagement");
+                }
+                else
+                {
+                    message = "Failed to add employee";
+                    messageClass = "alert alert-danger";
+
+                }
             }
         }
         catch (HttpRequestException)

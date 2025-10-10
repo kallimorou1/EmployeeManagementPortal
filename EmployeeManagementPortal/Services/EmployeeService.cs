@@ -1,28 +1,27 @@
 ﻿using EmployeeManagement.Shared.Models;
-using System;
 using System.Net.Http.Json;
 
 
 namespace EmployeeManagement.Portal.Services
 {
-    public class EmployeeService
+    public class EmployeeService : IEmployeeService
     {
-            private readonly HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
 
-            public EmployeeService(HttpClient httpClient)
-            {
-                _httpClient = httpClient;
-            }
+        public EmployeeService(IHttpClientFactory factory)
+        {
+            _httpClient = factory.CreateClient("EmployeeManagement.API");
+        }
         public async Task<(List<Employee> Employees, int TotalPages)> GetAll(
             PaginationDTO pagination)
         {
             var url = $"api/Employee/GetAll?page={pagination.Page}&quantityPerPage={pagination.QuantityPerPage}";
-            
+
             if (!string.IsNullOrWhiteSpace(pagination.SearchTerm))
                 url += $"&SearchTerm={Uri.EscapeDataString(pagination.SearchTerm)}";
 
             if (!string.IsNullOrWhiteSpace(pagination.SortColumn))
-                url += $"&SortColumn={Uri.EscapeDataString(pagination.SortColumn)}&SortOrder={SortOrder.Ascending}";
+                url += $"&SortColumn={Uri.EscapeDataString(pagination.SortColumn)}&SortOrder={pagination.SortOrder}";
 
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -33,14 +32,12 @@ namespace EmployeeManagement.Portal.Services
             {
                 int.TryParse(values.FirstOrDefault(), out totalPages);
             }
-            
+
 
             var employees = await response.Content.ReadFromJsonAsync<List<Employee>>();
             return (employees ?? new List<Employee>(), totalPages);
 
-
         }
-
 
 
         #region GET BY ID

@@ -13,14 +13,8 @@ builder.Services.AddHttpClient("EmployeeManagement.API", client =>
     // Additional configuration (headers, timeouts, etc.)
 });
 
-
-builder.Services.AddScoped(sp =>
-{
-    var factory = sp.GetRequiredService<IHttpClientFactory>();
-    var client = factory.CreateClient("EmployeeManagement.API");
-    return new EmployeeService(client);
-});
-
+//Add employee service wtith DI
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 await builder.Build().RunAsync();
 
