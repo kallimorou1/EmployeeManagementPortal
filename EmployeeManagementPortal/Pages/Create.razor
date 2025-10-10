@@ -1,110 +1,61 @@
-﻿@page "/create"
+﻿@page "/"
+@using global::EmployeeManagement.Portal.Layout
 @using global::EmployeeManagement.Portal.Services
-@using global::EmployeeManagement.Shared.Models
-@inject NavigationManager Navigation
-@inject IHttpClientFactory HttpClientFactory
+@using global::EmployeeManagement.Portal.ViewModels.Pages
+@layout AppLayout
 @inject IEmployeeService EmployeeService
-
+@inject CreateViewModel createViewModel
+@inject NavigationManager NavigationManager
 
 <h3>Create a new employee</h3>
 
-@if (!string.IsNullOrEmpty(message))
+@if (!string.IsNullOrEmpty(createViewModel.Message))
 {
-    <div class="@messageClass">@message</div>
+    <div class="@createViewModel.MessageClass">@createViewModel.Message</div>
 }
-@if (employee == null)
+
+@if (createViewModel.Employee == null)
 {
-<p><em>Loading...</em></p>
+    <p><em>Loading...</em></p>
 }
 else
 {
-<EditForm Model="employee" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div>
-        <label for="name">Name:</label>
-        <InputText id="name" @bind-Value="employee.Name" />
-    </div>
-    <div>
-        <label for="position">Position:</label>
-        <InputText id="position" @bind-Value="employee.Position" />
-    </div>
-    <div>
-        <label for="department">Department:</label>
-        <InputText id="department" @bind-Value="employee.Department" />
-    </div>
-    <div>
-        <label for="salary">Salary:</label>
-        <InputNumber id="salary" @bind-Value="employee.Salary" />
-            <button type="submit" class="btn btn-success">Save</button>
-    </div>
-</EditForm>
+    <EditForm Model="createViewModel.Employee" OnValidSubmit="createViewModel.HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <button class="btn btn-info" @onclick="EmployeeManagement">Back to Employee List</button>
+        <div>
+            <label for="name">Name:</label>
+            <InputText id="name" @bind-Value="createViewModel.Employee.Name" />
+        </div>
 
+        <div>
+            <label for="position">Position:</label>
+            <InputText id="position" @bind-Value="createViewModel.Employee.Position" />
+        </div>
+
+        <div>
+            <label for="department">Department:</label>
+            <InputText id="department" @bind-Value="createViewModel.Employee.Department" />
+        </div>
+
+        <div>
+            <label for="salary">Salary:</label>
+            <InputNumber id="salary" @bind-Value="createViewModel.Employee.Salary" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+    </EditForm>
+
+    <button class="btn btn-info" @onclick="createViewModel.NavigateToEmployeeList">
+        Back to Employee List
+    </button>
 }
+
 @code {
-
-    [Parameter]
-
-    public int Id { get; set; }
-
-    private Employee? employee = null;
-
-    private string? message = null;
-    private string messageClass = "";
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        employee = new Employee
-        {
-            Name = "",
-            Position = "",
-            Department = ""
-        };
-    }
-
-    public async Task HandleValidSubmit()
-    {
-        try
-        {
-            var client = HttpClientFactory.CreateClient("EmployeeManagement.API");
-            if (employee is not null)
-            {
-                var response = await EmployeeService.Add(employee);
-
-                if (response)
-                {
-                    message = "Employee created successfully!";
-                    messageClass = "alert alert-success";
-                    StateHasChanged();
-                    await Task.Delay(2500);
-                    Navigation.NavigateTo("/EmployeeManagement");
-                }
-                else
-                {
-                    message = "Failed to add employee";
-                    messageClass = "alert alert-danger";
-
-                }
-            }
-        }
-        catch (HttpRequestException)
-        {
-            message = "Network error. Please check your connection.";
-            messageClass = "alert alert-danger";
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-
-        }
-    }
-
-    private void EmployeeManagement()
-    {
-        Navigation.NavigateTo("/EmployeeManagement");
+        createViewModel = new CreateViewModel(NavigationManager, EmployeeService);
+        await createViewModel.HandleValidSubmit();
     }
 }
-
-

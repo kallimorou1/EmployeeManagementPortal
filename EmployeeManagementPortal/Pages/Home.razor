@@ -1,72 +1,70 @@
 ﻿@page "/"
 @using global::EmployeeManagement.Portal.Layout
 @using global::EmployeeManagement.Portal.Services
+@using global::EmployeeManagement.Portal.ViewModels.Pages
 @layout AppLayout
 @inject IEmployeeService EmployeeService
 
-<PageTitle>Dashboard</PageTitle>
+@* <style> 
+    .container{
+        background: black;
+    }
+</style> *@
 
-<h1 class="mb-4">Employee Dashboard</h1>
-
-@if (isLoading)
+@if(homeViewModel == null || !homeViewModel.Initilized)
 {
     <p><em>Loading dashboard...</em></p>
 }
-else if (Employees == null || !Employees.Any())
-{
-    <p>No employees found.</p>
-}
 else
 {
-    <div class="container">
-        <div class="row mb-4 justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card text-center shadow-lg border-0" style="background: linear-gradient(135deg, #7238c2, #b89be0); color: white;">
-                    <div class="card-body py-5">
-                        <h4 class="card-title mb-3">Total Employees</h4>
-                        <h1 class="display-3 fw-bold">@Employees.Count</h1>
+    <PageTitle>@homeViewModel.PageTitle</PageTitle>
+
+    <h1 class="mb-4">Employee Dashboard</h1>
+
+    if (homeViewModel.Employees == null || !homeViewModel.Employees.Any())
+    {
+        <p>No employees found.</p>
+    }
+    else
+    {
+        <div class="container">
+            <div class="row mb-4 justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card text-center shadow-lg border-0 purple-card">
+                        <div class="card-body py-5">
+                            <h4 class="card-title mb-3">Total Employees</h4>
+                            <h1 class="display-3 fw-bold">@homeViewModel.Employees.Count</h1>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                @foreach (var group in homeViewModel.Employees.GroupBy(e => e.Position))
+                {
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card text-center shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">@group.Key</h5>
+                                <h2 class="card-text fw-bold" style="color: #7238c2;">@group.Count()</h2>
+                            </div>
+                        </div>
                     </div>
+                }
             </div>
         </div>
 
-        <div class="row justify-content-center">
-        @foreach (var group in Employees.GroupBy(e => e.Position))
-        {
-            <div class="col-md-3 col-sm-6 mb-3"> 
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">@group.Key</h5>
-                            <h2 class="card-text fw-bold" style="color: #7238c2;">@group.Count()</h2>
-                    </div>
-                    </div>
-                </div>
-        }
-    </div>
-              </div>
-   
+    }
 }
+@*how to use components (reusable code)*@
+<EmployeeManagement.Portal.Components.Time date="DateTime.Now"></EmployeeManagement.Portal.Components.Time>
 
 @code {
-    private List<Employee> Employees = new();
-    private bool isLoading = true;
+    HomeViewModel? homeViewModel;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var paginationDto = new PaginationDTO
-            {
-                Page = 1,
-                QuantityPerPage = 1000,
-            };
-
-            var (employees, _) = await EmployeeService.GetAll(paginationDto);
-            Employees = employees;
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        homeViewModel = new HomeViewModel(EmployeeService);
+        await homeViewModel.LoadData();
     }
 }

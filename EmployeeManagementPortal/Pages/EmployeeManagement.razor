@@ -147,7 +147,7 @@ else
     private bool isModalVisible = false;
     private int employeeIdToDelete = 0;
 
-    public PaginationDTO paginationDto { get; set; }
+    public PaginationDTO paginationDto { get; set; } = new();
 
     private async Task ApplyFilter()
     {
